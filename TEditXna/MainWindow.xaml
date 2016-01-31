@@ -65,7 +65,7 @@
                     <MenuItem Header="Show Walls" IsCheckable="True" IsChecked="{Binding ShowWalls}" />
                     <MenuItem Header="Show Tiles" IsCheckable="True" IsChecked="{Binding ShowTiles}" />
                     <MenuItem Header="Show Liquid" IsCheckable="True" IsChecked="{Binding ShowLiquid}" />
-                    <MenuItem Header="Show Wires" IsCheckable="True" IsChecked="{Binding ShowWires}" />
+                    <MenuItem Header="Show Wires/Actuators" IsCheckable="True" IsChecked="{Binding ShowWires}" />
                     <Separator Margin="1" />
                     <MenuItem Header="Show Points" IsCheckable="True" IsChecked="{Binding ShowPoints}" />
                 </MenuItem>
@@ -95,6 +95,8 @@
                         <TextBox Text="{Binding MouseOverTile.TileExtras, Mode=OneWay}" Width="100" IsReadOnly="True" />
                         <TextBlock Text="Frame" VerticalAlignment="Center" Margin="5,0"/>
                         <TextBox Text="{Binding MouseOverTile.UV, StringFormat={}{0}, Mode=OneWay}" Width="50" IsReadOnly="True" />
+                        <TextBlock Text="Paint" VerticalAlignment="Center" Margin="5,0"/>
+                        <TextBox Text="{Binding MouseOverTile.Paint, Mode=OneWay}" Width="180" IsReadOnly="True" />
                     </StackPanel>
                 </StatusBarItem>
                 <StatusBarItem HorizontalAlignment="Right">

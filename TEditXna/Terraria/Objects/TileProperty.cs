@@ -23,6 +23,7 @@ namespace TEditXNA.Terraria.Objects
         private bool _isGrass; /* Heathtech */
         private bool _isPlatform; /* Heathtech */
         private bool _isCactus; /* Heathtech */
+        private bool _hasFrameName;
         private bool _isStone; /* Heathtech */
         private bool _canBlend; /* Heathtech */
         private int? _mergeWith; /* Heathtech */
@@ -37,6 +38,7 @@ namespace TEditXNA.Terraria.Objects
             _isGrass = false; /* Heathtech */
             _isPlatform = false; /* Heathtech */
             _isCactus = false; /* Heathtech */
+            _hasFrameName = false;
             _isStone = false; /* Heathtech */
             _canBlend = false; /* Heathtech */
             _mergeWith = null; /* Heathtech */
@@ -75,8 +77,6 @@ namespace TEditXNA.Terraria.Objects
         {
             get { return _frames; }
         }
-
-
 
         public TileProperty(int id, string name, Color color, bool isFramed = false)
         {
@@ -141,6 +141,12 @@ namespace TEditXNA.Terraria.Objects
         {
             get { return _isCactus; }
             set { Set("IsCactus", ref _isCactus, value); }
+        }
+
+        public bool HasFrameName
+        {
+            get { return _hasFrameName; }
+            set { Set("HasFrameName", ref _hasFrameName, value);  }
         }
 
         /* Heathtech */

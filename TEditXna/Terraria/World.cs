@@ -41,7 +41,7 @@ namespace TEditXNA.Terraria
             TilesWide = width;
             TilesHigh = height;
             Title = title;
-            Random r = seed <= 0 ? new Random((int) DateTime.Now.Ticks) : new Random(seed);
+            Random r = seed <= 0 ? new Random((int)DateTime.Now.Ticks) : new Random(seed);
             WorldId = r.Next(int.MaxValue);
             _npcs.Clear();
             _signs.Clear();
@@ -51,10 +51,24 @@ namespace TEditXNA.Terraria
 
         public static void Save(World world, string filename, bool resetTime = false)
         {
-            lock (_fileLock)
+            try
             {
                 OnProgressChanged(world, new ProgressChangedEventArgs(0, "Validating World..."));
                 world.Validate();
+            }
+            catch (ArgumentOutOfRangeException err)
+            {
+                string msg = string.Format("There is a problem in your world.\r\n" + 
+                                           "{0}\r\nThis world will not open in Terraria\r\n" + 
+                                           "Would you like to save anyways??\r\n"
+                                           , err.ParamName);
+                if (MessageBox.Show(msg, "World Error", MessageBoxButton.YesNo, MessageBoxImage.Error) !=
+                    MessageBoxResult.Yes)
+                    return;
+            }
+            lock (_fileLock)
+            {
+                
 
                 if (resetTime)
                 {
@@ -99,6 +113,7 @@ namespace TEditXNA.Terraria
         public static World LoadWorld(string filename)
         {
             var w = new World();
+            uint curVersion = 0;
             try
             {
                 lock (_fileLock)
@@ -106,6 +121,7 @@ namespace TEditXNA.Terraria
                     using (var b = new BinaryReader(File.OpenRead(filename)))
                     {
                         w.Version = b.ReadUInt32();
+                        curVersion = w.Version;
                         if (w.Version > 87)
                             LoadV2(b, filename, w);
                         else
@@ -116,10 +132,14 @@ namespace TEditXNA.Terraria
             }
             catch (Exception err)
             {
+
                 string msg =
-                    "There was an error reading the world file, do you wish to force it to load anyway?\r\n\r\n" +
-                    "WARNING: This may have unexpected results including corrupt world files and program crashes.\r\n\r\n" +
-                    "The error is :\r\n";
+                    string.Format("There was an error reading the world file, do you wish to force it to load anyway?\r\n\r\n" +
+                                  "WARNING: This may have unexpected results including corrupt world files and program crashes.\r\n\r\n" +
+                                   "The error is :\r\n" +
+                                   "TEdit supports world files of version {0}.\r\n" +
+                                  "This world is Version {1}.\r\n"
+                    , World.CompatibleVersion, curVersion);
                 if (MessageBox.Show(msg + err, "World File Error", MessageBoxButton.YesNo, MessageBoxImage.Error) !=
                     MessageBoxResult.Yes)
                     return null;
@@ -161,8 +181,8 @@ namespace TEditXNA.Terraria
         {
             Tile tile = Tiles[x, y];
 
-            int xShift = tile.U%36/18;
-            int yShift = tile.V%36/18;
+            int xShift = tile.U % 36 / 18;
+            int yShift = tile.V % 36 / 18;
 
             return new Vector2Int32(x - xShift, y - yShift);
         }
@@ -171,8 +191,8 @@ namespace TEditXNA.Terraria
         {
             Tile tile = Tiles[x, y];
 
-            int xShift = tile.U%36/18;
-            int yShift = tile.V%36/18;
+            int xShift = tile.U % 36 / 18;
+            int yShift = tile.V % 36 / 18;
 
             return new Vector2Int32(x - xShift, y - yShift);
         }
@@ -182,7 +202,7 @@ namespace TEditXNA.Terraria
             for (int x = 0; x < TilesWide; x++)
             {
                 OnProgressChanged(this,
-                    new ProgressChangedEventArgs((int) (x/(float) TilesWide*100.0), "Validating World..."));
+                    new ProgressChangedEventArgs((int)(x / (float)TilesWide * 100.0), "Validating World..."));
 
                 for (int y = 0; y < TilesHigh; y++)
                 {
@@ -200,7 +220,7 @@ namespace TEditXNA.Terraria
                             Chests.Add(new Chest(x, y));
                         }
                     }
-                        //validate sign entry exists
+                    //validate sign entry exists
                     else if (Tile.IsSign(curTile.Type))
                     {
                         if (GetSignAtTile(x, y) == null)
@@ -214,7 +234,7 @@ namespace TEditXNA.Terraria
             foreach (Chest chest in Chests.ToArray())
             {
                 bool removed = false;
-                for (int x = chest.X; x < chest.X+1; x++)
+                for (int x = chest.X; x < chest.X + 1; x++)
                 {
                     for (int y = chest.Y; y < chest.Y + 1; y++)
                     {
@@ -252,6 +272,12 @@ namespace TEditXNA.Terraria
                     if (removed) break;
                 }
             }
+            OnProgressChanged(this,
+                    new ProgressChangedEventArgs(0, "Validating Complete..."));
+            if (Chests.Count > 1000)
+                throw new ArgumentOutOfRangeException(string.Format("Chest Count is {0} which is greater than 1000",Chests.Count));
+            if (Signs.Count > 1000)
+                throw new ArgumentOutOfRangeException(string.Format("Sign Count is {0} which is greater than 1000",Signs.Count));
         }
 
         private void FixChand()
@@ -304,7 +330,7 @@ namespace TEditXNA.Terraria
             {
                 int xShift = x;
                 int yShift = y;
-                xShift = Tiles[x, y].U/18;
+                xShift = Tiles[x, y].U / 18;
                 while (xShift >= 3)
                 {
                     xShift = xShift - 3;
@@ -314,7 +340,7 @@ namespace TEditXNA.Terraria
                     xShift = xShift - 3;
                 }
                 xShift = x - xShift;
-                yShift = yShift + Tiles[x, y].V/18*-1;
+                yShift = yShift + Tiles[x, y].V / 18 * -1;
                 for (int x1 = xShift; x1 < xShift + 3; x1++)
                 {
                     for (int y1 = yShift; y1 < yShift + 3; y1++)
@@ -326,7 +352,7 @@ namespace TEditXNA.Terraria
                         if (Tiles[x1, y1].IsActive && Tiles[x1, y1].Type == type)
                         {
                             Tiles[x1, y1].Type = (int)TileType.Chandelier;
-                            Tiles[x1, y1].V = (short) (Tiles[x1, y1].V + newPosition*54);
+                            Tiles[x1, y1].V = (short)(Tiles[x1, y1].V + newPosition * 54);
                         }
                     }
                 }
@@ -338,7 +364,7 @@ namespace TEditXNA.Terraria
             DispatcherHelper.CheckBeginInvokeOnUI(
                 () =>
                 {
-                    int[] npcids = {17, 18, 19, 20, 22, 54, 38, 107, 108, 124, 160, 178, 207, 208, 209, 227, 228, 229, 353, 369, 441 };
+                    int[] npcids = { 17, 18, 19, 20, 22, 54, 38, 107, 108, 124, 160, 178, 207, 208, 209, 227, 228, 229, 353, 369, 441 };
 
                     foreach (int npcid in npcids)
                     {
@@ -352,21 +378,21 @@ namespace TEditXNA.Terraria
         {
             for (int i = 5; i < TilesWide - 5; ++i)
             {
-                for (int j = 5; (double) j < GroundLevel; ++j)
+                for (int j = 5; (double)j < GroundLevel; ++j)
                 {
                     if (Tiles[i, j].IsActive && Tiles[i, j].Type == (int)TileType.Sunflower)
                     {
-                        int u = Tiles[i, j].U/18;
-                        int v = j + Tiles[i, j].V/18*-1;
+                        int u = Tiles[i, j].U / 18;
+                        int v = j + Tiles[i, j].V / 18 * -1;
                         while (u > 1)
                             u -= 2;
-                        int xStart = u*-1 + i;
-                        int uStart = Rand.Next(3)*36;
+                        int xStart = u * -1 + i;
+                        int uStart = Rand.Next(3) * 36;
                         int uShift = 0;
                         for (int xx = xStart; xx < xStart + 2; ++xx)
                         {
                             for (int yy = v; yy < v + 4; ++yy)
-                                Tiles[xx, yy].U = (short) (uShift + uStart);
+                                Tiles[xx, yy].U = (short)(uShift + uStart);
                             uShift += 18;
                         }
                     }
